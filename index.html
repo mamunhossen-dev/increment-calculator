@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Increment Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3244;
+    --accent: #f0c040;
+    --accent2: #3dd68c;
+    --accent3: #58a6ff;
+    --danger: #ff6b6b;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #4a5568;
+    --eid: #ff9f43;
+    --nobo: #a29bfe;
+    --pf: #fd79a8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(240,192,64,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(88,166,255,0.06) 0%, transparent 60%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  header .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    opacity: 0.8;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent) 0%, #fff 60%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 10px;
+    font-weight: 300;
+  }
+
+  .wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* RATIOS STRIP */
+  .ratios-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s 0.05s ease both;
+  }
+
+  .ratio-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .ratio-chip .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  .ratio-chip .key { color: var(--text); font-weight: 500; }
+
+  /* INPUT PANEL */
+  .input-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s 0.1s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .input-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .input-panel h2 {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  /* MODE TABS */
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .mode-tab {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .mode-tab:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .mode-tab .tab-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mode-tab.active-base   { border-color: var(--accent2); color: var(--accent2); background: rgba(61,214,140,0.08); }
+  .mode-tab.active-eid    { border-color: var(--eid);     color: var(--eid);     background: rgba(255,159,67,0.08); }
+  .mode-tab.active-nobo   { border-color: var(--nobo);    color: var(--nobo);    background: rgba(162,155,254,0.08); }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .field label span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  .field input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+
+  .field input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(240,192,64,0.12);
+  }
+
+  .field input::placeholder { color: var(--text-dim); font-size: 13px; }
+
+  .calc-btn {
+    margin-top: 28px;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #e6a800);
+    border: none;
+    border-radius: 12px;
+    color: #0d1117;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.15s;
+  }
+
+  .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,192,64,0.3); }
+  .calc-btn:active { transform: translateY(0); }
+
+  /* RESULTS */
+  .results {
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .results.visible { display: flex; }
+
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .card.base .card-header { background: linear-gradient(135deg, rgba(61,214,140,0.08), transparent); }
+  .card.eid .card-header  { background: linear-gradient(135deg, rgba(255,159,67,0.08), transparent); }
+  .card.nobo .card-header { background: linear-gradient(135deg, rgba(162,155,254,0.08), transparent); }
+
+  .card-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card.base .card-type { color: var(--accent2); }
+  .card.eid  .card-type { color: var(--eid); }
+  .card.nobo .card-type { color: var(--nobo); }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .card-sms {
+    margin-top: 6px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .sms-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .sms-pill strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .sms-arrow { color: var(--accent); font-size: 14px; }
+
+  .card-body { padding: 20px 24px; }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(42,50,68,0.5);
+    font-size: 13px;
+    border-radius: 4px;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row .name { color: var(--text-muted); }
+  .breakdown-row .pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: 4px;
+  }
+  .breakdown-row .val {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .breakdown-row.special .name { color: var(--eid); }
+  .breakdown-row.nobo-row .name { color: var(--nobo); }
+
+  .card-footer {
+    margin: 0 24px 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-row .label { font-size: 12px; color: var(--text-muted); }
+  .footer-row .amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .footer-row.gross .amount { color: var(--accent2); }
+  .footer-row.pf .amount { color: var(--pf); }
+
+  .footer-row.payable {
+    background: var(--surface2);
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  .footer-row.payable .label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .footer-row.payable .amount {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .card.base .footer-row.payable .amount { color: var(--accent2); }
+  .card.eid  .footer-row.payable .amount { color: var(--eid); }
+  .card.nobo .footer-row.payable .amount { color: var(--nobo); }
+
+  /* INCREMENT BADGE */
+  .increment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+
+  .increment-badge.up   { background: rgba(61,214,140,0.1); color: var(--accent2); border: 1px solid rgba(61,214,140,0.25); }
+  .increment-badge.zero { background: rgba(139,148,158,0.1); color: var(--text-muted); border: 1px solid rgba(139,148,158,0.2); }
+
+  /* NOTE */
+  .note-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .note-bar strong { color: var(--accent); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .input-grid { grid-template-columns: 1fr; }
+    .cards-row  { grid-template-columns: 1fr; }
+    .mode-tabs  { flex-direction: column; }
+    .mode-tab   { min-width: unset; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <header>
+    <div class="label">HR Payroll Tool</div>
+    <h1>Increment Calculator</h1>
+    <p>Salary breakdown with Eid &amp; Noboborsho bonuses — select a month type to begin</p>
+  <a href="https://69a56222394d3931ac03d9bc--polite-sunflower-a17da8.netlify.app/" target="_blank">Regular Salary Calculator</a>
+  </header>
+  <!-- Salary structure chips -->
+  <div class="ratios-strip">
+    <div class="ratio-chip"><span class="dot" style="background:#3dd68c"></span><span class="key">Basic</span> 60%</div>
+    <div class="ratio-chip"><span class="dot" style="background:#58a6ff"></span><span class="key">House Rent</span> 27%</div>
+    <div class="ratio-chip"><span class="dot" style="background:#f0c040"></span><span class="key">Conveyance</span> 6%</div>
+    <div class="ratio-chip"><span class="dot" style="background:#fd79a8"></span><span class="key">Medical</span> 6%</div>
+    <div class="ratio-chip"><span class="dot" style="background:#a29bfe"></span><span class="key">Other</span> 1%</div>
+    <div class="ratio-chip"><span class="dot" style="background:#ff9f43"></span><span class="key">Eid Bonus</span> 100% Basic</div>
+    <div class="ratio-chip"><span class="dot" style="background:#6c5ce7"></span><span class="key">Noboborsho</span> 20% Basic</div>
+    <div class="ratio-chip"><span class="dot" style="background:#ff6b6b"></span><span class="key">PF Deduction</span> 5% of Basic</div>
+  </div>
+
+  <!-- Inputs -->
+  <div class="input-panel">
+    <h2>// Select Month Type &amp; Enter Recieved Amounts</h2>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active-base" id="tab-base" onclick="setMode('base')">
+        <span class="tab-dot" style="background:#3dd68c"></span> Standard Month
+      </button>
+      <button class="mode-tab" id="tab-eid" onclick="setMode('eid')">
+        <span class="tab-dot" style="background:#ff9f43"></span> With Eid Bonus
+      </button>
+      <button class="mode-tab" id="tab-nobo" onclick="setMode('nobo')">
+        <span class="tab-dot" style="background:#a29bfe"></span> With Noboborsho Bonus
+      </button>
+    </div>
+
+    <div class="input-grid">
+      <div class="field">
+        <label>Previous Recieved Amount <span>(before increment)</span></label>
+        <input type="number" id="prevSMS" placeholder="e.g. 19350" />
+      </div>
+      <div class="field">
+        <label>New Recieved Amount <span>(after increment)</span></label>
+        <input type="number" id="newSMS" placeholder="e.g. 21340" />
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calculate()">Calculate Salary Breakdown</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="cards-row" id="cardsRow"></div>
+    <div class="note-bar">
+      <strong>Note:</strong> PF is 5% deducted from Basic salary. SMS = amount received in bank account (Payable Amount).
+      Bonus months show a one-time additional payment on top of regular salary. Only <b>Standard Month</b> shows your Increment correctly.
+      For queries, contact <strong>mamun.hawarit@gmail.com</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+  const RATIOS = { basic: 0.60, house: 0.27, conv: 0.06, med: 0.06, other: 0.01 };
+  const PF_RATE         = 0.05;   // 5% of Basic
+  const EID_BONUS_RATE  = 1.00;   // 100% of Basic
+  const NOBO_BONUS_RATE = 0.20;   // 20% of Basic
+
+  let currentMode = 'base';
+
+  function setMode(mode) {
+    currentMode = mode;
+    ['base','eid','nobo'].forEach(m => {
+      const tab = document.getElementById('tab-' + m);
+      tab.className = 'mode-tab';
+      if (m === mode) tab.className = 'mode-tab active-' + m;
+    });
+    // Hide results on mode change
+    document.getElementById('results').classList.remove('visible');
+  }
+
+  // From SMS (payable) → gross
+  // payable = gross + bonus - PF
+  // For standard month: payable = gross - (basic * PF_RATE)
+  //   gross - gross * 0.60 * 0.05 = SMS
+  //   gross * (1 - 0.60 * 0.05) = SMS
+  //   gross * 0.97 = SMS
+  //   gross = SMS / 0.97
+  //
+  // For Eid:   payable = gross + eidBonus - (basic * PF_RATE)
+  //   = gross + basic - basic*0.05
+  //   = gross + basic*0.95
+  //   = gross*(1 + 0.60*0.95)
+  //   = gross * 1.57
+  //   gross = SMS / 1.57
+  //
+  // For Nobo:  payable = gross + noboBonus - (basic * PF_RATE)
+  //   = gross + basic*0.20 - basic*0.05
+  //   = gross + basic*0.15
+  //   = gross*(1 + 0.60*0.15)
+  //   = gross * 1.09
+  //   gross = SMS / 1.09
+
+  function smsToGross(sms, mode) {
+    if (mode === 'eid')  return sms / (1 + RATIOS.basic * (EID_BONUS_RATE  - PF_RATE));
+    if (mode === 'nobo') return sms / (1 + RATIOS.basic * (NOBO_BONUS_RATE - PF_RATE));
+    return sms / (1 - RATIOS.basic * PF_RATE);
+  }
+
+  function breakdown(gross) {
+    return {
+      basic: gross * RATIOS.basic,
+      house: gross * RATIOS.house,
+      conv:  gross * RATIOS.conv,
+      med:   gross * RATIOS.med,
+      other: gross * RATIOS.other,
+    };
+  }
+
+  function fmt(n) {
+    return n.toLocaleString('en-BD', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function calculate() {
+    const prevSMS = parseFloat(document.getElementById('prevSMS').value);
+    const newSMS  = parseFloat(document.getElementById('newSMS').value);
+
+    if (!prevSMS || !newSMS || prevSMS <= 0 || newSMS <= 0) {
+      alert('Please enter valid SMS amounts.');
+      return;
+    }
+
+    const prevGross = smsToGross(prevSMS, currentMode);
+    const newGross  = smsToGross(newSMS,  currentMode);
+
+    const increment = newGross - prevGross;
+    const bd = breakdown(newGross);
+    const basic   = bd.basic;
+    const pfBasic = basic * PF_RATE; // PF = 5% of Basic
+
+    let card;
+
+    if (currentMode === 'base') {
+      const gross   = newGross;
+      const payable = gross - pfBasic;
+      card = {
+        type: 'base', typeLabel: 'Regular Month', title: 'Standard Month',
+        prevSMS, newPayable: payable,
+        gross,
+        rows: [
+          { name: 'Basic',             pct: '60%', val: bd.basic },
+          { name: 'House Rent',        pct: '27%', val: bd.house },
+          { name: 'Conveyance',        pct: '6%',  val: bd.conv  },
+          { name: 'Medical Allowance', pct: '6%',  val: bd.med   },
+          { name: 'Other Allowance',   pct: '1%',  val: bd.other },
+        ],
+        pf: pfBasic,
+        payable,
+        increment,
+      };
+    } else if (currentMode === 'eid') {
+      const eidBonus  = basic * EID_BONUS_RATE;
+      const gross     = newGross;
+      const payable   = gross - pfBasic;
+      card = {
+        type: 'eid', typeLabel: 'Eid Month', title: 'With Eid Bonus',
+        prevSMS, newPayable: payable,
+        gross,
+        rows: [
+          { name: 'Basic',             pct: '60%',       val: bd.basic   },
+          { name: 'House Rent',        pct: '27%',       val: bd.house   },
+          { name: 'Conveyance',        pct: '6%',        val: bd.conv    },
+          { name: 'Medical Allowance', pct: '6%',        val: bd.med     },
+          { name: 'Other Allowance',   pct: '1%',        val: bd.other   },
+          { name: 'Eid Bonus',         pct: '100% Basic',val: eidBonus, special: true },
+        ],
+        pf: pfBasic,
+        payable,
+        increment,
+      };
+    } else {
+      const noboBonus = basic * NOBO_BONUS_RATE;
+      const gross     = newGross;
+      const payable   = gross - pfBasic;
+      card = {
+        type: 'nobo', typeLabel: 'Noboborsho Month', title: 'With Noboborsho Bonus',
+        prevSMS, newPayable: payable,
+        gross,
+        rows: [
+          { name: 'Basic',             pct: '60%',      val: bd.basic    },
+          { name: 'House Rent',        pct: '27%',      val: bd.house    },
+          { name: 'Conveyance',        pct: '6%',       val: bd.conv     },
+          { name: 'Medical Allowance', pct: '6%',       val: bd.med      },
+          { name: 'Other Allowance',   pct: '1%',       val: bd.other    },
+          { name: 'Noboborsho Bonus',  pct: '20% Basic',val: noboBonus, nobo: true },
+        ],
+        pf: pfBasic,
+        payable,
+        increment,
+      };
+    }
+
+    const html = `
+      <div class="card ${card.type}">
+        <div class="card-header">
+          <div class="card-type">${card.typeLabel}</div>
+          <div class="card-title">${card.title}</div>
+          <div class="card-sms">
+            <div class="sms-pill">
+              <span>Prev SMS</span>
+              <span class="sms-arrow">→</span>
+              <strong>৳${fmt(card.prevSMS)}</strong>
+            </div>
+            <div class="sms-pill">
+              <span>New SMS</span>
+              <span class="sms-arrow">→</span>
+              <strong>৳${fmt(card.payable)}</strong>
+            </div>
+          </div>
+          <div class="${card.increment > 0 ? 'increment-badge up' : 'increment-badge zero'}">
+            ${card.increment > 0 ? '↑' : '—'} Increment: ৳${fmt(card.increment)}
+          </div>
+        </div>
+
+        <div class="card-body">
+          ${card.rows.map(r => `
+            <div class="breakdown-row ${r.special ? 'special' : ''} ${r.nobo ? 'nobo-row' : ''}">
+              <span class="name">${r.name} <span class="pct">${r.pct}</span></span>
+              <span class="val">৳${fmt(r.val)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card-footer">
+          <div class="footer-row gross">
+            <span class="label">Total Monthly Gross</span>
+            <span class="amount">৳${fmt(card.gross)}</span>
+          </div>
+          <div class="footer-row pf">
+            <span class="label">PF Deduction (5% of Basic)</span>
+            <span class="amount">− ৳${fmt(card.pf)}</span>
+          </div>
+          <div class="footer-row payable">
+            <span class="label">Payable Amount (SMS)</span>
+            <span class="amount">৳${fmt(card.payable)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('cardsRow').innerHTML = html;
+    const results = document.getElementById('results');
+    results.classList.add('visible');
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
